@@ -1,0 +1,4 @@
+'use strict'
+
+exports.ERR_NOT_VALID_URL = 'ERR_NOT_VALID_URL'
+exports.ERR_MISSING_URL = 'ERR_MISSING_URL'
