@@ -3,10 +3,10 @@ const chai = require('chai')
 const should = chai.should()
 const resolver = require('../')
 
-describe('Audiomack Tests', () => {
+describe('Audiomack Album Tests', () => {
 
-  const audiomack_url = 'http://www.audiomack.com/song/roosh-williams/extraordinary'
-  describe(`Audiomack Track Test: ${audiomack_url}`, () => {
+  const audiomack_url = 'https://audiomack.com/album/rapwisedotcom/ai-youngboy'
+  describe(`Audiomack Album Test: ${audiomack_url}`, () => {
     let result
 
     before((done) => {
@@ -16,16 +16,16 @@ describe('Audiomack Tests', () => {
       })
     })
 
-    it('identify a single audiomack track', () => {
-      result.should.have.length(1)
+    it('identify an audiomack album', () => {
+      result.should.have.length(15)
     })
 
     it('identify audiomack id', () => {
-      result[0].id.should.equal(310086)
+      result[0].id.should.equal(3245616)
     })
 
-    it('identify extractor as audiomack', () => {
-      result[0].extractor.should.equal('Audiomack')
+    it('identify extractor as Audiomack:album', () => {
+      result[0].extractor.should.equal('Audiomack:album')
     })
 
     it('identify stream url', () => {
@@ -38,7 +38,7 @@ describe('Audiomack Tests', () => {
      */
 
     it('identify title', () => {
-      result[0].fulltitle.should.equal('Extraordinary')
+      result[0].fulltitle.should.equal('AI YoungBoy - Trappin')
     })
 
     /* it('identify duration', () => {

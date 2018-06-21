@@ -25,11 +25,15 @@ describe('Youtube Tests', () => {
     })
 
     it('identify extractor as youtube', () => {
-      result[0].extractor.should.equal('youtube')
+      result[0].extractor.should.equal('Youtube')
     })
 
     it('identify thumbnail', () => {
-      result[0].thumbnail.should.equal('https://i.ytimg.com/vi/iODdvJGpfIA/hqdefault.jpg')
+      result[0].thumbnail.should.equal('https://i.ytimg.com/vi/iODdvJGpfIA/default.jpg')
+    })
+
+    it('identify stream url', () => {
+      result[0].url.should.exist
     })
 
     it('identify title', () => {
@@ -37,7 +41,7 @@ describe('Youtube Tests', () => {
     })
 
     it('identify duration', () => {
-      result[0]._duration_raw.should.equal(262)
+      result[0].duration.should.equal(262)
     })
 
   })

@@ -21,11 +21,15 @@ describe('Bandcamp Tests', () => {
     })
 
     it('identify bandcamp id', () => {
-      result[0].id.should.equal('1812978515')
+      result[0].id.should.equal(1812978515)
     })
 
-    it('identify extractor as bandcamp', () => {
+    it('identify extractor as Bandcamp', () => {
       result[0].extractor.should.equal('Bandcamp')
+    })
+
+    it('identify stream url', () => {
+      result[0].url.should.exist
     })
 
     it('identify thumbnail', () => {
@@ -37,7 +41,7 @@ describe('Bandcamp Tests', () => {
     })
 
     it('identify duration', () => {
-      result[0]._duration_raw.should.equal(9.8485)
+      result[0].duration.should.equal(9.8485)
     })
 
   })

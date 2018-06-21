@@ -3,10 +3,10 @@ const chai = require('chai')
 const should = chai.should()
 const resolver = require('../')
 
-describe('Soundcloud Tests', () => {
+describe('Soundcloud Set Tests', () => {
 
-  const soundcloud_url = 'http://soundcloud.com/skrillex/with-you-friends-long-drive'
-  describe(`Soundcloud Track Test: ${soundcloud_url}`, () => {
+  const soundcloud_url = 'http://soundcloud.com/skrillex/sets/scary-monsters-and-nice'
+  describe(`Soundcloud Set Test: ${soundcloud_url}`, () => {
     let result
 
     before((done) => {
@@ -16,16 +16,16 @@ describe('Soundcloud Tests', () => {
       })
     })
 
-    it('identify a single soundcloud track', () => {
-      result.should.have.length(1)
+    it('identify a soundcloud set', () => {
+      result.should.have.length(9)
     })
 
     it('identify soundcloud id', () => {
-      result[0].id.should.equal(21792171)
+      result[0].id.should.equal(21792165)
     })
 
     it('identify extractor as soundcloud', () => {
-      result[0].extractor.should.equal('Soundcloud')
+      result[0].extractor.should.equal('Soundcloud:set')
     })
 
     it('identify stream url', () => {
@@ -37,11 +37,11 @@ describe('Soundcloud Tests', () => {
     })
 
     it('identify title', () => {
-      result[0].fulltitle.should.equal('WITH YOU, FRIENDS (LONG DRIVE)')
+      result[0].fulltitle.should.equal('ROCK N\' ROLL (WILL TAKE YOU TO THE MOUNTAIN)')
     })
 
     it('identify duration', () => {
-      result[0].duration.should.equal(389)
+      result[0].duration.should.equal(284)
     })
 
   })

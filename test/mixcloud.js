@@ -24,8 +24,12 @@ describe('Mixcloud Tests', () => {
       result[0].id.should.equal('johndigweed-transitions-with-john-digweed-and-chymera')
     })
 
-    it('identify extractor as mixcloud', () => {
-      result[0].extractor.should.equal('mixcloud')
+    it('identify extractor as Mixcloud', () => {
+      result[0].extractor.should.equal('Mixcloud')
+    })
+
+    it('identify stream url', () => {
+      result[0].url.should.exist
     })
 
     it('identify thumbnail', () => {
