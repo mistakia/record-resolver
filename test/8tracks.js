@@ -21,11 +21,15 @@ describe('8tracks Tests', () => {
     })
 
     it('identify 8tracks id', () => {
-      result[0].id.should.equal('8765737')
+      result[0].id.should.equal(8765819)
     })
 
     it('identify extractor as 8tracks', () => {
       result[0].extractor.should.equal('8tracks')
+    })
+
+    it('identify stream url', () => {
+      result[0].url.should.equal('http://cft.8tracks.com/tf/033/632/313/Ymxy31.48k.v3.m4a')
     })
 
     /* it('identify thumbnail', () => {
@@ -34,7 +38,7 @@ describe('8tracks Tests', () => {
      */
 
     it('identify title', () => {
-      result[0].fulltitle.should.equal('Edward Sharpe And The Magnetic Zeros - Man On Fire')
+      result[0].fulltitle.should.equal('Gomez - Bone Tired')
     })
 
     /* it('identify duration', () => {
