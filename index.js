@@ -83,7 +83,6 @@ module.exports = promisify(async (url, opts = {}, callback) => {
 
     callback(null, result)
   } catch (e) {
-    console.log(e)
     callback(e)
   }
 })
