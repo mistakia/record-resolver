@@ -44,6 +44,10 @@ describe('Soundcloud Tests', () => {
       result[0].duration.should.equal(389)
     })
 
+    it('identify webpage url', () => {
+      result[0].webpage_url.should.equal('https://soundcloud.com/skrillex/with-you-friends-long-drive')
+    })
+
   })
 
 })

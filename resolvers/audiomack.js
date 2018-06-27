@@ -25,6 +25,7 @@ class AudiomackResolver extends Resolver {
       id: body.id,
       extractor: this._name,
       url: body.url,
+      webpage_url: url,
       fulltitle: body.title,
       duration: body.duration
     })
@@ -75,11 +76,18 @@ class AudiomackAlbumResolver extends Resolver {
       if (sr.suitable(body.url)) {
         item = await sr.extract(url)
       } else {
+        const permalink_re = /^https?:\/\/(?:music\.)?audiomack\.com\/albums\/([\w-]+)\/(?:[\w-]+)\/([\w\/-]+)/ig
+        const permalink_re_result = permalink_re.exec(body.url)
+        const artist = permalink_re_result[1]
+        const song_title = permalink_re_result[2]
+        const permalink = `https://audiomack.com/song/${artist}/${song_title}`
+
         item = {
           id: body.id,
           extractor: this._name,
           url: body.url,
           fulltitle: body.title,
+          webpage_url: permalink,
           duration: body.duration
         }
         entries.push(item)

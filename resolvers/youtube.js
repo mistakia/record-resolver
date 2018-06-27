@@ -98,6 +98,7 @@ class YoutubeResolver extends Resolver {
       extractor: this._name,
       fulltitle: info.title,
       url: bestFormat ? bestFormat.url : null,
+      webpage_url: info.video_url,
       duration: parseInt(info.length_seconds, 10),
       thumbnail: info.thumbnail_url
     })

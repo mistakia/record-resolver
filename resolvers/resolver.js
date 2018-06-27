@@ -5,6 +5,7 @@ const defaultInfo = {
   extractor: null,
   url: null,
   fulltitle: null,
+  webpage_url: null,
   thumbnail: null,
   duration: null
 }

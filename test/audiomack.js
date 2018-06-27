@@ -41,6 +41,10 @@ describe('Audiomack Tests', () => {
       result[0].fulltitle.should.equal('Extraordinary')
     })
 
+    it('identify webpage url', () => {
+      result[0].webpage_url.should.equal('http://www.audiomack.com/song/roosh-williams/extraordinary')
+    })
+
     /* it('identify duration', () => {
      *   result[0]._duration_raw.should.equal(389)
      * })

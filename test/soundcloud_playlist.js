@@ -3,7 +3,7 @@ const chai = require('chai')
 const should = chai.should()
 const resolver = require('../')
 
-describe('Soundcloud Plalist Tests', () => {
+describe('Soundcloud Playlist Tests', () => {
 
   const soundcloud_url = 'https://api.soundcloud.com/playlists/4110309'
   describe(`Soundcloud Playlist Test: ${soundcloud_url}`, () => {
@@ -42,6 +42,10 @@ describe('Soundcloud Plalist Tests', () => {
 
     it('identify duration', () => {
       result[0].duration.should.equal(122)
+    })
+
+    it('identify webpage url', () => {
+      result[0].webpage_url.should.equal('http://soundcloud.com/non-site_records/tilt-improv_sak-passe_030812')
     })
 
   })

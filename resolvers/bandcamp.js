@@ -37,6 +37,9 @@ class BandcampResolver extends Resolver {
 
     const tracks = JSON.parse(trackInfo)
 
+    const hostname = new URI(url).hostname()
+    const permalink = `http://${hostname}${tracks[0].title_link}`
+
     // TODO: grab formats and sort
     const file = tracks[0].file
     const file_url = new URI(file[Object.keys(file)[0]]).absoluteTo('http://').toString()
@@ -46,6 +49,7 @@ class BandcampResolver extends Resolver {
       extractor: this._name,
       fulltitle: tracks[0].title,
       url: file_url,
+      webpage_url: permalink,
       duration: tracks[0].duration,
       thumbnail: thumbnail
     })
@@ -78,17 +82,22 @@ class BandcampAlbumResolver extends Resolver {
     const tracks = JSON.parse(trackInfo)
     let entries = []
 
+    const hostname = new URI(url).hostname()
+
     tracks.forEach((track) => {
       const file = track.file
       const file_url = new URI(file[Object.keys(file)[0]]).absoluteTo('http://').toString()
 
+      const permalink = `http://${hostname}${track.title_link}`
+
       entries.push(super.extract({
-          id: tracks[0].id,
-          extractor: this._name,
-          fulltitle: tracks[0].title,
-          url: file_url,
-          duration: tracks[0].duration,
-          thumbnail: thumbnail
+        id: tracks[0].id,
+        extractor: this._name,
+        fulltitle: tracks[0].title,
+        url: file_url,
+        duration: tracks[0].duration,
+        webpage_url: permalink,
+        thumbnail: thumbnail
       }))
     })
 

@@ -40,6 +40,10 @@ describe('Bandcamp Album Tests', () => {
       result[0].fulltitle.should.equal('Intro')
     })
 
+    it('identify webpage url', () => {
+      result[0].webpage_url.should.equal('http://blazo.bandcamp.com/track/nujabes-the-final-view')
+    })
+
     it('identify duration', () => {
       result[0].duration.should.equal(19.335)
     })

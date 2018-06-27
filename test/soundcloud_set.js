@@ -44,6 +44,8 @@ describe('Soundcloud Set Tests', () => {
       result[0].duration.should.equal(284)
     })
 
+    it('identify webpage url', () => {
+      result[0].webpage_url.should.equal('http://soundcloud.com/skrillex/rock-n-roll-will-take-you-to')
+    })
   })
-
 })

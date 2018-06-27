@@ -44,6 +44,8 @@ describe('Youtube Tests', () => {
       result[0].duration.should.equal(262)
     })
 
+    it('identify webpage url', () => {
+      result[0].webpage_url.should.equal('https://www.youtube.com/watch?v=iODdvJGpfIA')
+    })
   })
-
 })

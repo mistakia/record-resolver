@@ -41,6 +41,10 @@ describe('Audiomack Album Tests', () => {
       result[0].fulltitle.should.equal('AI YoungBoy - Trappin')
     })
 
+    it('identify webpage url', () => {
+      result[0].webpage_url.should.equal('https://audiomack.com/song/rapwisedotcom/trappin')
+    })
+
     /* it('identify duration', () => {
      *   result[0]._duration_raw.should.equal(389)
      * })

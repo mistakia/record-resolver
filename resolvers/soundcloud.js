@@ -141,6 +141,7 @@ class SoundcloudResolver extends Resolver {
       url: body.stream_url ? _streamUrl(body.stream_url, token) : null,
       duration: parseInt(body.duration / 1000, 10),
       fulltitle: body.title,
+      webpage_url: body.permalink_url,
       extractor: this._name
     })
   }
@@ -186,6 +187,7 @@ class SoundcloudSetResolver extends Resolver {
         duration: parseInt(track.duration / 1000, 10),
         fulltitle: track.title,
         extractor: this._name,
+        webpage_url: track.permalink_url,
         url: _streamUrl(track.stream_url)
       })
     })
@@ -243,6 +245,7 @@ class SoundcloudPlaylistResolver extends Resolver {
         thumbnail: thumbnail,
         duration: parseInt(track.duration / 1000, 10),
         fulltitle: track.title,
+        webpage_url: track.permalink_url,
         extractor: this._name,
         url: _streamUrl(track.stream_url)
       })
