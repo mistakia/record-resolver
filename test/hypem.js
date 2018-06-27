@@ -41,6 +41,10 @@ describe('Hypem Tests', () => {
       result[0].fulltitle.should.equal('To Protect And Entertain (Crookers Remix...')
     })
 
+    it('identify webpage url', () => {
+      result[0].webpage_url.should.equal('https://hypem.com/track/hm5b/Busy+P+-+To+Protect+And+Entertain+(Crookers+Remix)')
+    })
+
     /* it('identify duration', () => {
      *   result[0]._duration_raw.should.equal(389)
      * })

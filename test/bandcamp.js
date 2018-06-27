@@ -40,6 +40,10 @@ describe('Bandcamp Tests', () => {
       result[0].fulltitle.should.equal('youtube-dl  "\'/\\ä↭ - youtube-dl test song "\'/\\ä↭')
     })
 
+    it('identify webpage url', () => {
+      result[0].webpage_url.should.equal('http://youtube-dl.bandcamp.com/track/youtube-dl-test-song')
+    })
+
     it('identify duration', () => {
       result[0].duration.should.equal(9.8485)
     })

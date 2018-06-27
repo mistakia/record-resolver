@@ -40,6 +40,10 @@ describe('Mixcloud Tests', () => {
       result[0].fulltitle.should.equal('Transitions with John Digweed and Chymera')
     })
 
+    it('identify webpage url', () => {
+      result[0].webpage_url.should.equal('https://www.mixcloud.com/johndigweed/transitions-with-john-digweed-and-chymera')
+    })
+
     /* it('identify duration', () => {
      *   result[0]._duration_raw.should.equal(6938)
      * })

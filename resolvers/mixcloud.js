@@ -94,7 +94,8 @@ class MixcloudResolver extends Resolver {
 
       return super.extract({
         extractor: this._name,
-        url: play_info.stream_url
+        url: play_info.stream_url,
+        webpage_url: url
       })
 
     } else {
@@ -111,6 +112,7 @@ class MixcloudResolver extends Resolver {
         extractor: this._name,
         thumbnail: thumbnail,
         fulltitle: info_json.name,
+        webpage_url: `https://www.mixcloud.com/${info_json.owner.username}/${info_json.slug}`,
         url: decrypted_url
       })
 

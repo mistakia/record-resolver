@@ -34,6 +34,7 @@ class EighttracksResolver extends Resolver {
         id: track_data.id,
         extractor: this._name,
         url: track_data.track_file_stream_url,
+        webpage_url: track_data.url,
         fulltitle: `${track_data.performer} - ${track_data.name}`
       })
       tracks.push(track)
@@ -43,4 +44,23 @@ class EighttracksResolver extends Resolver {
   }
 }
 
-module.exports.default = [EighttracksResolver]
+class EighttracksSongResolver extends Resolver {
+  constructor () {
+    super()
+
+    this._name = '8tracks:song'
+    this._valid_url = /^https?:\/\/8tracks\.com\/(?:songs|tracks)\/([\d]+)\/?$/
+  }
+
+  async extract (url) {
+    throw new Error('Not Implemented')
+
+    // TODO: get link to shortist playlist
+    // TODO: get playlist => filter by track id
+  }
+}
+
+module.exports.default = [
+  EighttracksResolver,
+  EighttracksSongResolver
+]

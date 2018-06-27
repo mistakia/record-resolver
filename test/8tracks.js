@@ -41,6 +41,10 @@ describe('8tracks Tests', () => {
       result[0].fulltitle.should.equal('Gomez - Bone Tired')
     })
 
+    it('identify webpage url', () => {
+      result[0].webpage_url.should.equal('http://8tracks.com/tracks/8765819')
+    })
+
     /* it('identify duration', () => {
      *   result[0]._duration_raw.should.equal(389)
      * })
