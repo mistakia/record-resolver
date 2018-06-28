@@ -16,10 +16,12 @@
   },
   "devDependencies": {
     "chai": "^4.1.2",
+    "istanbul": "^1.0.0-alpha.2",
     "mocha": "^5.2.0"
   },
   "scripts": {
-    "test": "$(npm bin)/mocha --reporter spec --timeout 60000 test/*.js"
+    "test": "$(npm bin)/mocha --reporter spec --timeout 60000 test/*.js",
+    "coverage": "$(npm bin)/istanbul cover $(npm bin)/_mocha -- -R spec --timeout 60000 test/*.js"
   },
   "author": "",
   "license": "MIT"
