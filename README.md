@@ -43,4 +43,6 @@ try {
 ```
 
 ## License
+MIT
+
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fmistakia%2Frecord-resolver.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fmistakia%2Frecord-resolver?ref=badge_large)
