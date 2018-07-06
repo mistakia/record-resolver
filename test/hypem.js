@@ -32,10 +32,10 @@ describe('Hypem Tests', () => {
       result[0].url.should.equal('http://livingears.com/music/LivingEarsRadio/042410/To Protect And Entertain Crookers.mp3')
     })
 
-    /* it('identify thumbnail', () => {
-     *   result[0].thumbnail.should.equal('https://i1.sndcdn.com/artworks-000008793437-pgni6l-t500x500.jpg')
-     * })
-     */
+    it('identify thumbnail', () => {
+      result[0].thumbnail.should.equal('https://static.hypem.com/items_images/ab/hm5b_500.jpg')
+    })
+
 
     it('identify title', () => {
       result[0].fulltitle.should.equal('To Protect And Entertain (Crookers Remix...')
