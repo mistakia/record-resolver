@@ -1,3 +1,5 @@
+const cheerio = require('cheerio')
+
 const { request } = require('../utils')
 const Resolver = require('./resolver')
 
@@ -13,6 +15,9 @@ class HypemResolver extends Resolver {
     const hypem_url = url + '?' + encodeURIComponent({'ax': 1, 'ts': Date.now()})
     const { body } = await request(hypem_url)
 
+    const $ = cheerio.load(body)
+    const thumbnail = $('meta[property="og:image"]').attr('content')
+
     const html_tracks = /<script type="application\/json" id="displayList-data">\s*(.*?)\s*<\/script>/.exec(body)[1]
 
     const track = JSON.parse(html_tracks).tracks[0]
@@ -23,6 +28,7 @@ class HypemResolver extends Resolver {
     return super.extract({
       id: track.id,
       extractor: this._name,
+      thumbnail: thumbnail,
       url: stream_url,
       webpage_url: url,
       fulltitle: track.song
