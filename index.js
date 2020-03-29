@@ -1,9 +1,5 @@
-const youtubedl = require('youtube-dl')
-const extend = require('deep-extend')
-const promisify = require('promisify-es6')
-
+const { getInfo } = require('./utils')
 const ERRORS = require('./errors')
-const resolvers = require('./resolvers')
 
 function isURL (text) {
   var pattern = '^(https?:\\/\\/)?' + // protocol
@@ -16,75 +12,70 @@ function isURL (text) {
   return re.test(text);
 }
 
-const defaults = {
-  resolver: null
-}
+const formatInfo = (info) => {
+  let {
+    id,
+    extractor,
+    fulltitle,
+    thumbnail,
+    artist,
+    upload_date,
+    alt_title,
+    extractor_key,
+    formats,
+    url,
+    webpage_url,
+    _duration_raw
+  } = info
 
-const getResolver = (name) => {
-  return resolvers.find((resolver) => {
-    return resolver._name === name
-  })
-}
-
-module.exports = promisify(async (url, opts = {}, callback) => {
-
-  if (typeof opts === 'function') {
-    callback = opts
-    opts = {}
+  if (formats && extractor === 'youtube') {
+    const audio_formats = formats.filter(f => f.acodec !== 'none' && f.vcodec ==='none')
+    const bestFormat = audio_formats.sort((a, b) => b.abr - a.abr)
+    url = bestFormat[0].url
   }
 
+  if (extractor === '8tracks') {
+    webpage_url = `http://8tracks.com/tracks/${id}`
+  }
+
+  return {
+    id,
+    extractor,
+    fulltitle,
+    thumbnail,
+    artist,
+    alt_title,
+    upload_date,
+    webpage_url,
+    url,
+    duration: _duration_raw
+  }
+}
+
+module.exports = async (url) => {
   if (!url) {
-    return callback(Object.assign(new Error('missing url'), {
+    throw Object.assign(new Error('missing url'), {
       code: ERRORS.ERR_MISSING_URL,
       url: url
-    }))
-  }
-
-  if (!isURL(url)) {
-    return callback(Object.assign(new Error('not a valid url'), {
-      code: ERRORS.ERR_NOT_VALID_URL,
-      url: url
-    }))
-  }
-
-  const options = extend(defaults, opts)
-
-  if (options.useYTDL) {
-    return youtubedl.getInfo(url, null, (err, info) => {
-      if (err) throw err
-
-      if (!Array.isArray(info)) {
-        info = [info]
-      }
-
-      callback(null, info)
     })
   }
 
-  const rs = options.resolver ? getResolver(options.resolver) : resolvers
-
-  const resolver = rs.find((resolver) => {
-    return resolver.suitable(url)
-  })
-
-  if (!resolver) {
-    return callback(Object.assign(new Error('not a suitable url'), {
-      code: ERRORS.ERR_NOT_SUITABLE_URL,
+  if (!isURL(url)) {
+    throw Object.assign(new Error('not a valid url'), {
+      code: ERRORS.ERR_NOT_VALID_URL,
       url: url
-    }))
+    })
   }
 
   try {
-    let result = await resolver.extract(url)
-
-    if (!Array.isArray(result)) {
-      result = [result]
-    }
-
-    callback(null, result)
-  } catch (e) {
-    callback(e)
+    const info = await getInfo(url)
+    return info.map(i => formatInfo(i))
+  } catch (err) {
+    throw Object.assign(new Error('Unsupported URL'), {
+      code: ERRORS.ERR_NOT_SUITABLE_URL,
+      url: url
+    })
   }
-})
+}
 
 module.exports.errors = ERRORS

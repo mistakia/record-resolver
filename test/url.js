@@ -5,27 +5,27 @@ const resolver = require('../')
 const resolverErrors = require('../').errors
 
 describe('Url Tests', () => {
-  it('catch invalid urls', (done) => {
-    const url = 's'
-    resolver(url, (err, info) => {
-      if (!err) {
-        return done('Did not throw invalid url error')
-      }
-
+  it('catch invalid urls', async () => {
+    try {
+      await resolver('s')
+    } catch (err) {
       err.code.should.equal(resolverErrors.ERR_NOT_VALID_URL)
-      done()
-    })
+    }
   })
 
-  it('catch empty urls', (done) => {
-    const url = ''
-    resolver(url, (err, info) => {
-      if (!err) {
-        return done('Did not throw empty url error')
-      }
-
+  it('catch empty urls', async () => {
+    try {
+      await resolver('')
+    } catch (err) {
       err.code.should.equal(resolverErrors.ERR_MISSING_URL)
-      done()
-    })
+    }
+  })
+
+  it('catch not supported url', async () => {
+    try {
+      await resolver('http://www.soundcloud.com')
+    } catch (err) {
+      err.code.should.equal(resolverErrors.ERR_NOT_SUITABLE_URL)
+    }
   })
 })
