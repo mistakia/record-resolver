@@ -29,7 +29,7 @@ const formatInfo = (info) => {
   } = info
 
   if (formats && extractor === 'youtube') {
-    const audio_formats = formats.filter(f => f.acodec !== 'none' && f.vcodec ==='none')
+    const audio_formats = formats.filter(f => f.acodec !== 'none' && f.vcodec ==='none' && f.ext === 'm4a')
     const bestFormat = audio_formats.sort((a, b) => b.abr - a.abr)
     url = bestFormat[0].url
   }
