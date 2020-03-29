@@ -4,15 +4,10 @@
   "description": "Resolver for record.",
   "main": "index.js",
   "dependencies": {
-    "async": "^2.6.1",
-    "cheerio": "^1.0.0-rc.2",
-    "deep-extend": "^0.6.0",
     "promisify-es6": "^1.0.3",
     "requestretry": "^1.13.0",
-    "urijs": "^1.19.1",
     "yargs": "^11.0.0",
-    "youtube-dl": "^1.12.2",
-    "ytdl-core": "^0.20.4"
+    "youtube-dl": "^3.0.2"
   },
   "devDependencies": {
     "chai": "^4.1.2",

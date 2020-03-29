@@ -9,12 +9,7 @@ describe('Youtube Tests', () => {
   describe(`Youtube Video Test: ${video_url}`, () => {
     let result
 
-    before((done) => {
-      resolver(video_url, (err, info) => {
-        result = info
-        done(err)
-      })
-    })
+    before(async () => result = await resolver(video_url))
 
     it('identify a single video', () => {
       result.should.have.length(1)
@@ -25,11 +20,11 @@ describe('Youtube Tests', () => {
     })
 
     it('identify extractor as youtube', () => {
-      result[0].extractor.should.equal('Youtube')
+      result[0].extractor.should.equal('youtube')
     })
 
     it('identify thumbnail', () => {
-      result[0].thumbnail.should.equal('https://i.ytimg.com/vi/iODdvJGpfIA/default.jpg')
+      result[0].thumbnail.should.equal('https://i.ytimg.com/vi/iODdvJGpfIA/hqdefault.jpg')
     })
 
     it('identify stream url', () => {

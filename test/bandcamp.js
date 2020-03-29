@@ -9,19 +9,14 @@ describe('Bandcamp Tests', () => {
   describe(`Bandcamp Track Test: ${bandcamp_url}`, () => {
     let result
 
-    before((done) => {
-      resolver(bandcamp_url, (err, info) => {
-        result = info
-        done(err)
-      })
-    })
+    before(async () => result = await resolver(bandcamp_url))
 
     it('identify a single bandcamp track', () => {
       result.should.have.length(1)
     })
 
     it('identify bandcamp id', () => {
-      result[0].id.should.equal(1812978515)
+      result[0].id.should.equal('1812978515')
     })
 
     it('identify extractor as Bandcamp', () => {
@@ -37,7 +32,7 @@ describe('Bandcamp Tests', () => {
     })
 
     it('identify title', () => {
-      result[0].fulltitle.should.equal('youtube-dl  "\'/\\ä↭ - youtube-dl test song "\'/\\ä↭')
+      result[0].fulltitle.should.equal('youtube-dl  \\ - youtube-dl  "\'/\\ä↭ - youtube-dl test song "\'/\\ä↭')
     })
 
     it('identify webpage url', () => {
@@ -47,7 +42,5 @@ describe('Bandcamp Tests', () => {
     it('identify duration', () => {
       result[0].duration.should.equal(9.8485)
     })
-
   })
-
 })
