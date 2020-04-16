@@ -1,7 +1,7 @@
-const { getInfo } = require('./utils')
 const ERRORS = require('./errors')
+const youtubedl = require('youtube-dl')
 
-function isURL (text) {
+const isURL = (text) => {
   var pattern = '^(https?:\\/\\/)?' + // protocol
 	'((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // domain name
 	'((\\d{1,3}\\.){3}\\d{1,3}))' + // OR ip (v4) address
@@ -52,7 +52,24 @@ const formatInfo = (info) => {
   }
 }
 
-module.exports = async (url) => {
+const getInfo = (url) => {
+  return new Promise((resolve, reject) => {
+    const options = []
+    youtubedl.getInfo(url, options, (err, info) => {
+      if (err) {
+        return reject(err)
+      }
+
+      if (!Array.isArray(info)) {
+        info = [info]
+      }
+
+      resolve(info)
+    })
+  })
+}
+
+const resolver = module.exports = async (url) => {
   if (!url) {
     throw Object.assign(new Error('missing url'), {
       code: ERRORS.ERR_MISSING_URL,
@@ -78,4 +95,8 @@ module.exports = async (url) => {
   }
 }
 
-module.exports.errors = ERRORS
+resolver.setYtdlBinary = (ytdlBinary) => {
+  if (ytdlBinary) youtubedl.setYtdlBinary(ytdlBinary)
+}
+
+resolver.errors = ERRORS

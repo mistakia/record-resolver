@@ -4,16 +4,14 @@
   "description": "Resolver for record.",
   "main": "index.js",
   "dependencies": {
-    "promisify-es6": "^1.0.3",
-    "requestretry": "^1.13.0",
-    "yargs": "^11.0.0",
     "youtube-dl": "^3.0.2"
   },
   "devDependencies": {
     "chai": "^4.1.2",
     "codecov": "^3.0.2",
     "istanbul": "^1.0.0-alpha.2",
-    "mocha": "^5.2.0"
+    "mocha": "^5.2.0",
+    "yargs": "^11.0.0"
   },
   "scripts": {
     "test": "$(npm bin)/mocha --reporter spec --timeout 60000 test/*.js",
