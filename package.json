@@ -13,8 +13,8 @@
     "yargs": "^11.0.0"
   },
   "scripts": {
-    "test": "$(npm bin)/mocha --reporter spec --timeout 60000 test/*.js",
-    "coverage": "$(npm bin)/nyc $(npm bin)/mocha -- -R spec --timeout 60000 test/*.js"
+    "test": "mocha --reporter spec --timeout 60000 test/*.js",
+    "coverage": "nyc mocha -- -R spec --timeout 60000 test/*.js"
   },
   "author": "",
   "license": "MIT"
