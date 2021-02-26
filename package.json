@@ -1,21 +1,20 @@
 {
   "name": "record-resolver",
   "version": "0.0.1",
-  "description": "Resolver for record.",
+  "description": "Resolver for Record: a distributed system for audio files",
   "main": "index.js",
   "dependencies": {
     "youtube-dl": "^3.0.2"
   },
   "devDependencies": {
-    "chai": "^4.1.2",
-    "codecov": "^3.0.2",
-    "istanbul": "^1.0.0-alpha.2",
-    "mocha": "^5.2.0",
+    "chai": "4.3.0",
+    "mocha": "8.3.0",
+    "nyc": "^15.1.0",
     "yargs": "^11.0.0"
   },
   "scripts": {
     "test": "$(npm bin)/mocha --reporter spec --timeout 60000 test/*.js",
-    "coverage": "$(npm bin)/istanbul cover $(npm bin)/_mocha -- -R spec --timeout 60000 test/*.js && $(npm bin)/codecov"
+    "coverage": "$(npm bin)/nyc $(npm bin)/mocha -- -R spec --timeout 60000 test/*.js"
   },
   "author": "",
   "license": "MIT"
