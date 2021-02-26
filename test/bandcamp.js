@@ -32,7 +32,7 @@ describe('Bandcamp Tests', () => {
     })
 
     it('identify title', () => {
-      result[0].fulltitle.should.equal('youtube-dl  \\ - youtube-dl  "\'/\\ä↭ - youtube-dl test song "\'/\\ä↭')
+      result[0].fulltitle.should.equal('youtube-dl  "\'/\\ä↭ - youtube-dl  "\'/\\ä↭ - youtube-dl test song "\'/\\ä↭')
     })
 
     it('identify webpage url', () => {

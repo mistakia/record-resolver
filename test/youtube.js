@@ -24,7 +24,7 @@ describe('Youtube Tests', () => {
     })
 
     it('identify thumbnail', () => {
-      result[0].thumbnail.should.equal('https://i.ytimg.com/vi/iODdvJGpfIA/hqdefault.jpg')
+      result[0].thumbnail.should.include('https://i.ytimg.com/vi/iODdvJGpfIA/hqdefault.jpg')
     })
 
     it('identify stream url', () => {

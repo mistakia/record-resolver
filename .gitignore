@@ -11,3 +11,4 @@ yarn-error.log
 # App specific
 #
 coverage/
+.nyc_output/
