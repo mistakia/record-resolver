@@ -1,0 +1,35 @@
+name: Test
+
+on:
+  push:
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  release:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [macos-latest]
+#        os: [macos-latest, windows-latest, ubuntu-latest]
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v1
+
+      - name: Install Node.js, NPM and Yarn
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.13.1
+
+      - name: yarn install
+        run: |
+          yarn install --frozen-lockfile --network-timeout 300000
+
+      - name: yarn coverage
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          yarn coverage
+#          yarn lint
