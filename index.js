@@ -41,14 +41,14 @@ const formatInfo = (info) => {
   return {
     id,
     extractor,
-    fulltitle,
-    thumbnail,
-    artist,
-    alt_title,
-    upload_date,
-    webpage_url,
-    url,
-    duration: _duration_raw
+    fulltitle: fulltitle || null,
+    thumbnail: thumbnail || null,
+    artist: artist || null,
+    alt_title: alt_title || null,
+    upload_date: upload_date || null,
+    webpage_url: webpage_url || null,
+    url: url || null,
+    duration: _duration_raw || null
   }
 }
 
