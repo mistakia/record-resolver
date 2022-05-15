@@ -32,7 +32,7 @@ describe('Audiomack Album Tests', () => {
      * })
      */
     it('identify title', () => {
-      result[0].fulltitle.should.equal('Please Excuse Me For Being Antisocial - Intro')
+      result[0].fulltitle.should.equal('Please Excuse Me for Being Antisocial - Intro')
     })
 
     it('identify webpage url', () => {

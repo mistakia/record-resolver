@@ -4,18 +4,19 @@
   "description": "Resolver for Record: a distributed system for audio files",
   "main": "index.js",
   "dependencies": {
-    "youtube-dl": "^3.0.2"
+    "youtube-dl": "3.5.0"
   },
   "devDependencies": {
-    "chai": "4.3.0",
-    "mocha": "8.3.0",
+    "chai": "4.3.6",
+    "mocha": "10.0.0",
     "nyc": "^15.1.0",
-    "yargs": "^11.0.0"
+    "yargs": "17.5.0"
   },
   "scripts": {
     "test": "mocha --reporter spec --timeout 60000 test/*.js",
     "coverage": "nyc mocha -- -R spec --timeout 60000 test/*.js"
   },
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "packageManager": "yarn@3.2.1"
 }

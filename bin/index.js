@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
-const argv = require('yargs').argv
+const yargs = require('yargs/yargs')
+const { hideBin } = require('yargs/helpers')
+const argv = yargs(hideBin(process.argv)).argv
 const resolver = require('../')
 
 const run = async (url) => {
