@@ -6,6 +6,11 @@
   "dependencies": {
     "youtube-dl": "3.5.0"
   },
+  "dependenciesMeta": {
+    "youtube-dl": {
+      "built": true
+    }
+  },
   "devDependencies": {
     "chai": "4.3.6",
     "mocha": "10.0.0",

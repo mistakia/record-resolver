@@ -2804,6 +2804,9 @@ __metadata:
     nyc: ^15.1.0
     yargs: 17.5.0
     youtube-dl: 3.5.0
+  dependenciesMeta:
+    youtube-dl:
+      built: true
   languageName: unknown
   linkType: soft
 
