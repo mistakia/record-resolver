@@ -6,7 +6,8 @@
 // so no second resolution can rebind the name. It serves CONNECT, for https,
 // and absolute-form plain http requests.
 
-import { createServer, request, STATUS_CODES, type IncomingMessage, type ServerResponse } from 'node:http'
+import { randomBytes } from 'node:crypto'
+import { createServer, request, type IncomingMessage, type ServerResponse } from 'node:http'
 import { connect, isIP, type AddressInfo, type LookupFunction, type Socket } from 'node:net'
 import type { Duplex } from 'node:stream'
 
@@ -28,12 +29,11 @@ export interface GuardedProxy {
   url: string
   // Every BLOCKED_DESTINATION the proxy answered, in order.
   refusals: ResolverError[]
+  // The refusal an ERROR line of yt-dlp's stderr names, if any.
+  refusal_in: (stderr: string) => ResolverError | undefined
   // Stops listening and destroys every open connection, both sides.
   close: () => Promise<void>
 }
-
-const status_of = (error: unknown): number =>
-  error instanceof ResolverError && error.code === 'BLOCKED_DESTINATION' ? 403 : 502
 
 // The addresses a target may be connected to. An IP literal is checked
 // directly; a name goes through the lookup, which refuses it unless every
@@ -80,6 +80,20 @@ const connect_first = async ({ addresses, port, track }: {
   throw last_error
 }
 
+const unsupported_scheme = (target: URL): ResolverError =>
+  new ResolverError({ code: 'BLOCKED_DESTINATION', message: `unsupported scheme ${target.protocol} in ${target.href}`, url: target.href })
+
+// The absolute-form target of a request line Bun's parser rejected; Bun
+// refuses a scheme other than http or https before the request handler runs.
+const rejected_target = (raw: Buffer | undefined): URL | undefined => {
+  const target = /^[A-Z]+ ([a-zA-Z][a-zA-Z0-9+.-]*:\/\/\S*) HTTP\/1\.[01]\r?\n/.exec(String(raw ?? ''))?.[1]
+  try {
+    return target === undefined ? undefined : new URL(target)
+  } catch {
+    return undefined
+  }
+}
+
 // host:port, with an IPv6 host in brackets. Returns the bare host.
 const parse_authority = (authority: string): { host: string, port: number } | undefined => {
   const match = /^(?:\[([^\]]+)\]|([^:[\]]+)):(\d{1,5})$/.exec(authority)
@@ -93,6 +107,11 @@ const parse_authority = (authority: string): { host: string, port: number } | un
 // connects through; anything other than guarded_lookup is for tests.
 export async function start_guarded_proxy ({ lookup = guarded_lookup }: { lookup?: LookupFunction | undefined } = {}): Promise<GuardedProxy> {
   const refusals: ResolverError[] = []
+  // Each refusal's 403 carries a reason phrase naming it, which yt-dlp echoes
+  // in its error ("HTTP Error 403: ..." or "Tunnel connection failed: 403
+  // ..."). The nonce keeps an origin's own 403 from passing for one.
+  const nonce = randomBytes(6).toString('hex')
+  const reason_of = (index: number): string => `Forbidden (record-resolver refusal ${nonce}-${index})`
   const sockets = new Set<Duplex>()
   let closed = false
 
@@ -105,20 +124,32 @@ export async function start_guarded_proxy ({ lookup = guarded_lookup }: { lookup
     socket.once('close', () => { sockets.delete(socket) })
   }
 
-  // Resolves and connects, or records the refusal and rejects.
-  const open = async ({ host, port }: { host: string, port: number }): Promise<Socket> => {
-    try {
-      const addresses = await approved_addresses({ host, lookup })
-      if (closed) throw new Error('proxy closed')
-      return await connect_first({ addresses, port, track })
-    } catch (error) {
-      if (status_of(error) === 403) refusals.push(error as ResolverError)
-      throw error
-    }
+  // The status line for a failed open: 403 for a refusal, which is recorded,
+  // and 502 for anything else, such as a name that does not resolve.
+  const failure_of = (error: unknown): { status: number, reason: string, body: string } => {
+    const body = `${(error as Error).message}\n`
+    if (!(error instanceof ResolverError && error.code === 'BLOCKED_DESTINATION')) return { status: 502, reason: 'Bad Gateway', body }
+    refusals.push(error)
+    return { status: 403, reason: reason_of(refusals.length - 1), body }
   }
 
-  const reply = (socket: Duplex, status: number, body: string): void => {
-    socket.end(`HTTP/1.1 ${status} ${STATUS_CODES[status] ?? ''}\r\nContent-Type: text/plain\r\nContent-Length: ${Buffer.byteLength(body)}\r\nConnection: close\r\n\r\n${body}`)
+  const refusal_in = (stderr: string): ResolverError | undefined => {
+    const error_lines = stderr.split('\n').filter((line) => line.startsWith('ERROR:'))
+    return refusals.find((_refusal, index) => error_lines.some((line) => line.includes(reason_of(index))))
+  }
+
+  const open = async ({ host, port }: { host: string, port: number }): Promise<Socket> => {
+    const addresses = await approved_addresses({ host, lookup })
+    if (closed) throw new Error('proxy closed')
+    return await connect_first({ addresses, port, track })
+  }
+
+  const reply = (socket: Duplex, { status, reason, body }: { status: number, reason: string, body: string }): void => {
+    socket.end(`HTTP/1.1 ${status} ${reason}\r\nContent-Type: text/plain\r\nContent-Length: ${Buffer.byteLength(body)}\r\nConnection: close\r\n\r\n${body}`)
+  }
+
+  const respond = (res: ServerResponse, { status, reason, body }: { status: number, reason: string, body: string }): void => {
+    res.writeHead(status, reason, { 'Content-Type': 'text/plain', Connection: 'close' }).end(body)
   }
 
   const on_request = (req: IncomingMessage, res: ServerResponse): void => {
@@ -126,8 +157,12 @@ export async function start_guarded_proxy ({ lookup = guarded_lookup }: { lookup
     try {
       target = new URL(req.url ?? '')
     } catch {}
-    if (target?.protocol !== 'http:') {
-      res.writeHead(400, { 'Content-Type': 'text/plain', Connection: 'close' }).end('only absolute-form http requests and CONNECT are proxied\n')
+    if (target === undefined) {
+      respond(res, { status: 400, reason: 'Bad Request', body: 'only absolute-form http requests and CONNECT are proxied\n' })
+      return
+    }
+    if (target.protocol !== 'http:') {
+      respond(res, failure_of(unsupported_scheme(target)))
       return
     }
     const host = target.hostname.replace(/^\[|\]$/g, '')
@@ -146,15 +181,13 @@ export async function start_guarded_proxy ({ lookup = guarded_lookup }: { lookup
       })
       upstream.on('error', () => { res.destroy() })
       req.pipe(upstream)
-    }, (error: unknown) => {
-      res.writeHead(status_of(error), { 'Content-Type': 'text/plain', Connection: 'close' }).end(`${(error as Error).message}\n`)
-    })
+    }, (error: unknown) => { respond(res, failure_of(error)) })
   }
 
   const on_connect = (req: IncomingMessage, client: Duplex, head: Buffer): void => {
     const target = parse_authority(req.url ?? '')
     if (target === undefined) {
-      reply(client, 400, 'CONNECT needs host:port\n')
+      reply(client, { status: 400, reason: 'Bad Request', body: 'CONNECT needs host:port\n' })
       return
     }
     open(target).then((upstream) => {
@@ -164,15 +197,17 @@ export async function start_guarded_proxy ({ lookup = guarded_lookup }: { lookup
       client.on('error', () => { upstream.destroy() })
       upstream.pipe(client)
       client.pipe(upstream)
-    }, (error: unknown) => {
-      reply(client, status_of(error), `${(error as Error).message}\n`)
-    })
+    }, (error: unknown) => { reply(client, failure_of(error)) })
   }
 
   const server = createServer(on_request)
   server.on('connect', on_connect)
   server.on('connection', track)
-  server.on('clientError', (_error, socket) => { socket.destroy() })
+  server.on('clientError', (error: Error & { rawPacket?: Buffer }, socket) => {
+    const target = rejected_target(error.rawPacket)
+    if (target === undefined || !socket.writable) socket.destroy()
+    else reply(socket, failure_of(unsupported_scheme(target)))
+  })
   await new Promise<void>((resolve, reject) => {
     server.once('error', reject)
     server.listen(0, '127.0.0.1', () => {
@@ -192,12 +227,13 @@ export async function start_guarded_proxy ({ lookup = guarded_lookup }: { lookup
     await closing
   }
 
-  return { url: `http://127.0.0.1:${port}`, refusals, close }
+  return { url: `http://127.0.0.1:${port}`, refusals, refusal_in, close }
 }
 
 // Runs `run` with a fresh proxy's URL and closes the proxy when it settles,
-// on every path. A yt-dlp failure after the proxy refused a connection is
-// reported as BLOCKED_DESTINATION, naming the first refused destination.
+// on every path. A yt-dlp failure is reported as BLOCKED_DESTINATION only when
+// yt-dlp's own ERROR line names a refusal, so a refused incidental fetch, or a
+// refusal another local client provoked, cannot relabel an unrelated failure.
 export async function with_guarded_proxy<T> ({ run, lookup }: {
   run: (proxy_url: string) => Promise<T>
   lookup?: LookupFunction | undefined
@@ -206,8 +242,8 @@ export async function with_guarded_proxy<T> ({ run, lookup }: {
   try {
     return await run(proxy.url)
   } catch (error) {
-    const [refusal] = proxy.refusals
-    if (refusal !== undefined && error instanceof ResolverError && REFUSABLE_CODES.has(error.code)) {
+    const refusal = error instanceof ResolverError && REFUSABLE_CODES.has(error.code) ? proxy.refusal_in(error.stderr ?? '') : undefined
+    if (refusal !== undefined && error instanceof ResolverError) {
       throw new ResolverError({
         code: 'BLOCKED_DESTINATION',
         message: `yt-dlp was refused a connection: ${refusal.message}`,

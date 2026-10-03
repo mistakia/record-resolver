@@ -77,6 +77,28 @@ describe('start_guarded_proxy refuses a non-public destination', () => {
     expect(origin.hits).toEqual([])
   })
 
+  test('an absolute-form request with a scheme other than http', async () => {
+    const { origin, proxy } = await setup({ lookup: answers_with('127.0.0.1') })
+    expect(await exchange(proxy, get(`ftp://127.0.0.1:${origin.port}/`))).toStartWith('HTTP/1.1 403')
+    expect(await exchange(proxy, get('https://public.test/'))).toStartWith('HTTP/1.1 403')
+    expect(proxy.refusals.map((refusal) => refusal.message)).toEqual([
+      `unsupported scheme ftp: in ftp://127.0.0.1:${origin.port}/`,
+      'unsupported scheme https: in https://public.test/'
+    ])
+  })
+
+  test('names each refusal in its reason phrase', async () => {
+    const { origin, proxy } = await setup()
+    const [first, second] = [
+      await exchange(proxy, connect_to(`127.0.0.1:${origin.port}`)),
+      await exchange(proxy, get(`http://10.0.0.5:${origin.port}/`))
+    ].map((response) => response.split('\r\n')[0])
+    expect(first).toMatch(/^HTTP\/1\.1 403 Forbidden \(record-resolver refusal [0-9a-f]{12}-0\)$/)
+    expect(second).toMatch(/^HTTP\/1\.1 403 Forbidden \(record-resolver refusal [0-9a-f]{12}-1\)$/)
+    expect(proxy.refusal_in(`ERROR: Unable to download webpage: HTTP Error 403: ${second?.slice('HTTP/1.1 403 '.length) ?? ''}`)).toBe(proxy.refusals[1] as ResolverError)
+    expect(proxy.refusal_in('ERROR: HTTP Error 403: Forbidden')).toBeUndefined()
+  })
+
   test('checks an IP literal itself, whatever the lookup answers', async () => {
     const { origin, proxy } = await setup({ lookup: answers_with('127.0.0.1') })
     expect(await exchange(proxy, connect_to(`127.0.0.1:${origin.port}`))).toStartWith('HTTP/1.1 403')
@@ -114,11 +136,6 @@ describe('start_guarded_proxy rejects what it does not proxy', () => {
   test('400 for an origin-form request', async () => {
     const { proxy } = await setup()
     expect(await exchange(proxy, 'GET / HTTP/1.1\r\nHost: x\r\nConnection: close\r\n\r\n')).toStartWith('HTTP/1.1 400')
-  })
-
-  test('400 for an absolute-form https request', async () => {
-    const { proxy } = await setup()
-    expect(await exchange(proxy, get('https://public.test/'))).toStartWith('HTTP/1.1 400')
   })
 
   test('400 for a CONNECT without a valid port', async () => {
@@ -173,7 +190,14 @@ describe('closing the proxy', () => {
 })
 
 describe('with_guarded_proxy', () => {
-  const failed = new ResolverError({ code: 'YTDLP_FAILED', message: 'yt-dlp exited 1: ERROR: HTTP Error 403: Forbidden', url: 'https://public.test/', stderr: 'ERROR: HTTP Error 403: Forbidden' })
+  const failed_with = (reason: string): ResolverError => new ResolverError({
+    code: 'YTDLP_FAILED',
+    message: `yt-dlp exited 1: ERROR: HTTP Error 403: ${reason}`,
+    url: 'https://public.test/',
+    stderr: `[generic] Downloading webpage\nERROR: HTTP Error 403: ${reason}\n`
+  })
+  const failed = failed_with('Forbidden')
+  const reason_in = (response: string): string => response.split('\r\n')[0]?.slice('HTTP/1.1 403 '.length) ?? ''
 
   async function rejection (promise: Promise<unknown>): Promise<ResolverError> {
     try {
@@ -185,33 +209,46 @@ describe('with_guarded_proxy', () => {
     throw new Error('expected a ResolverError')
   }
 
-  test('reports a yt-dlp failure after a refusal as BLOCKED_DESTINATION', async () => {
+  test('reports a yt-dlp failure whose ERROR line names a refusal as BLOCKED_DESTINATION', async () => {
+    let cause: ResolverError | undefined
+    const error = await rejection(with_guarded_proxy({
+      run: async (proxy_url) => {
+        await exchange({ url: proxy_url } as GuardedProxy, connect_to('127.0.0.1:443'))
+        cause = failed_with(reason_in(await exchange({ url: proxy_url } as GuardedProxy, get('http://10.0.0.5/'))))
+        throw cause
+      }
+    }))
+    expect(error.code).toBe('BLOCKED_DESTINATION')
+    expect(error.message).toBe('yt-dlp was refused a connection: 10.0.0.5 is a private address')
+    expect(error.url).toBe('https://public.test/')
+    expect(error.stderr).toBe(cause?.stderr)
+    expect(error.cause).toBe(cause)
+  })
+
+  test('leaves a failure that names no refusal as it is, even after one', async () => {
     const error = await rejection(with_guarded_proxy({
       run: async (proxy_url) => {
         await exchange({ url: proxy_url } as GuardedProxy, get('http://10.0.0.5/'))
         throw failed
       }
     }))
-    expect(error.code).toBe('BLOCKED_DESTINATION')
-    expect(error.message).toBe('yt-dlp was refused a connection: 10.0.0.5 is a private address')
-    expect(error.url).toBe('https://public.test/')
-    expect(error.stderr).toBe(failed.stderr)
-    expect(error.cause).toBe(failed)
+    expect(error).toBe(failed)
   })
 
   test('leaves a failure without a refusal as it is', async () => {
     expect(await rejection(with_guarded_proxy({ run: async () => { throw failed } }))).toBe(failed)
   })
 
-  test('leaves a timeout as a timeout, even after a refusal', async () => {
-    const timeout = new ResolverError({ code: 'YTDLP_TIMEOUT', message: 'yt-dlp did not finish within 1ms' })
+  test('leaves a timeout as a timeout, even when its stderr names a refusal', async () => {
+    let timeout: ResolverError | undefined
     const error = await rejection(with_guarded_proxy({
       run: async (proxy_url) => {
-        await exchange({ url: proxy_url } as GuardedProxy, connect_to('127.0.0.1:443'))
+        const reason = reason_in(await exchange({ url: proxy_url } as GuardedProxy, connect_to('127.0.0.1:443')))
+        timeout = new ResolverError({ code: 'YTDLP_TIMEOUT', message: 'yt-dlp did not finish within 1ms', stderr: `ERROR: Tunnel connection failed: 403 ${reason}` })
         throw timeout
       }
     }))
-    expect(error).toBe(timeout)
+    expect(error).toBe(timeout as ResolverError)
   })
 
   test('closes the proxy when run throws', async () => {

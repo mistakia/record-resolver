@@ -3,6 +3,7 @@ import { ResolverError } from './errors.ts';
 export interface GuardedProxy {
     url: string;
     refusals: ResolverError[];
+    refusal_in: (stderr: string) => ResolverError | undefined;
     close: () => Promise<void>;
 }
 export declare function start_guarded_proxy({ lookup }?: {
