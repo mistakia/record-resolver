@@ -8,6 +8,7 @@
 import { writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
+import { with_guarded_proxy } from '../src/guarded-proxy.ts'
 import { check_ytdlp_version, dump_json } from '../src/yt-dlp.ts'
 
 const FIXTURES: Record<string, { url: string, playlist?: boolean }> = {
@@ -47,7 +48,7 @@ if (!check.matches) {
 }
 
 for (const [name, { url, playlist = false }] of Object.entries(FIXTURES)) {
-  const entries = await dump_json({ url, playlist, timeout_ms: 300_000 })
+  const entries = await with_guarded_proxy({ run: async (proxy_url) => await dump_json({ url, proxy_url, playlist, timeout_ms: 300_000 }) })
   const lines = entries.map((entry) => JSON.stringify(sanitize(entry)))
   await writeFile(join(fixtures_dir, `${name}.jsonl`), `${lines.join('\n')}\n`)
   console.log(`${name}: ${entries.length} entries`)

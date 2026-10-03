@@ -43,5 +43,9 @@ jobs:
       - name: Verify (lint, typecheck, dist is current)
         run: bun run verify
 
+      # YTDLP_PATH lets test/yt-dlp-proxy.test.ts run the pinned release
+      # through the guarded proxy, against loopback servers only.
       - name: Test
+        env:
+          YTDLP_PATH: ${{ runner.temp }}/yt-dlp/yt-dlp
         run: bun test

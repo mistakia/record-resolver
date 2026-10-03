@@ -98,6 +98,7 @@ describe('yt-dlp arguments', () => {
     expect(argv).not.toContain('--yes-playlist')
     expect(argv).not.toContain('--flat-playlist')
     expect(argv[argv.indexOf('--format') + 1]).toBe(FORMAT_SELECTOR)
+    expect(argv[argv.indexOf('--proxy') + 1]).toMatch(/^http:\/\/127\.0\.0\.1:\d+$/)
     expect(argv.slice(-2)).toEqual(['--', URL_UNDER_TEST])
   })
 

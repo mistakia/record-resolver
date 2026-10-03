@@ -49,6 +49,29 @@ describe('dist under node', () => {
     expect(result.stdout.trim()).toBe('BLOCKED_DESTINATION')
   })
 
+  test('a closed guarded proxy leaves no open handles', () => {
+    const script = `
+      import { createServer, connect } from 'node:net'
+      import { start_guarded_proxy } from ${JSON.stringify(pathToFileURL(join(DIST, 'guarded-proxy.js')).href)}
+      const origin = createServer(() => {})
+      await new Promise((resolve) => origin.listen(0, '127.0.0.1', resolve))
+      const lookup = (_host, _options, done) => done(null, [{ address: '127.0.0.1', family: 4 }])
+      const proxy = await start_guarded_proxy({ lookup })
+      const client = connect({ host: '127.0.0.1', port: Number(new URL(proxy.url).port) })
+      const authority = 'public.test:' + origin.address().port
+      client.write('CONNECT ' + authority + ' HTTP/1.1\\r\\nHost: ' + authority + '\\r\\n\\r\\n')
+      const reply = await new Promise((resolve) => client.once('data', resolve))
+      if (!String(reply).startsWith('HTTP/1.1 200')) throw new Error('tunnel not established: ' + reply)
+      await proxy.close()
+      origin.close()
+      process.on('exit', () => { console.log('drained') })
+    `
+    const result = spawnSync('node', ['--input-type=module', '--eval', script], { encoding: 'utf8', timeout: 10_000 })
+    expect(result.stderr).toBe('')
+    expect(result.status).toBe(0)
+    expect(result.stdout.trim()).toBe('drained')
+  })
+
   test('the CLI prints resolved entries and exits 0', () => {
     const result = run_node([join(DIST, 'cli.js'), '--binary', FAKE_YTDLP, URL_UNDER_TEST])
     expect(result.status).toBe(0)

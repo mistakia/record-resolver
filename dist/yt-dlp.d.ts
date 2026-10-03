@@ -3,12 +3,14 @@ export declare const YTDLP_SHA256 = "1fa6733c37ea6fb51c99ad8fe785e7b7e5f3246c9b9
 export declare const DEFAULT_TIMEOUT_MS = 60000;
 export declare const FORMAT_SELECTOR: string;
 export declare function resolve_binary_path(binary_path?: string): string;
-export declare function build_ytdlp_args({ url, playlist }: {
+export declare function build_ytdlp_args({ url, proxy_url, playlist }: {
     url: string;
+    proxy_url: string;
     playlist?: boolean;
 }): string[];
-export declare function dump_json({ url, binary_path, timeout_ms, playlist }: {
+export declare function dump_json({ url, proxy_url, binary_path, timeout_ms, playlist }: {
     url: string;
+    proxy_url: string;
     binary_path?: string | undefined;
     timeout_ms?: number | undefined;
     playlist?: boolean | undefined;
