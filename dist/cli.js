@@ -9,7 +9,7 @@ import { ResolverError } from "./errors.js";
 import { resolve_url, validate_url } from "./resolve.js";
 import { check_ytdlp_version } from "./yt-dlp.js";
 const USAGE = 'usage: record-resolver [--playlist] [--binary <path>] [--timeout <ms>] <url>';
-const INPUT_ERRORS = new Set(['MISSING_URL', 'INVALID_URL']);
+const INPUT_ERRORS = new Set(['MISSING_URL', 'INVALID_URL', 'BLOCKED_DESTINATION']);
 function fail(message, exit_code) {
     process.stderr.write(`${message}\n`);
     process.exit(exit_code);

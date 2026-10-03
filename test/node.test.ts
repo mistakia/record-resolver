@@ -8,7 +8,8 @@ import { pathToFileURL } from 'node:url'
 import { FAKE_YTDLP } from './helpers.ts'
 
 const DIST = join(import.meta.dir, '..', 'dist')
-const URL_UNDER_TEST = 'https://soundcloud.com/skrillex/with-you-friends-long-drive'
+// A public IP literal, so the destination check needs no DNS.
+const URL_UNDER_TEST = 'https://93.184.215.14/skrillex/with-you-friends-long-drive'
 
 function run_node (args: string[], env: Record<string, string> = {}) {
   const result = spawnSync('node', args, {
@@ -36,6 +37,18 @@ describe('dist under node', () => {
     expect(output.persisted[0]).not.toHaveProperty('url')
   })
 
+  test('guarded_lookup refuses a connection to loopback', () => {
+    const script = `
+      import { request } from 'node:http'
+      import { guarded_lookup } from ${JSON.stringify(pathToFileURL(join(DIST, 'index.js')).href)}
+      const req = request({ host: 'localhost', port: 9, lookup: guarded_lookup })
+      req.on('error', (error) => { console.log(error.code) })
+      req.end()
+    `
+    const result = run_node(['--input-type=module', '--eval', script])
+    expect(result.stdout.trim()).toBe('BLOCKED_DESTINATION')
+  })
+
   test('the CLI prints resolved entries and exits 0', () => {
     const result = run_node([join(DIST, 'cli.js'), '--binary', FAKE_YTDLP, URL_UNDER_TEST])
     expect(result.status).toBe(0)
@@ -54,8 +67,9 @@ describe('dist under node', () => {
     expect(run_node([join(DIST, 'cli.js'), '--binary', FAKE_YTDLP, 'not a url']).status).toBe(2)
     expect(run_node([join(DIST, 'cli.js'), '--binary', '/nonexistent/yt-dlp', 'not a url']).status).toBe(2)
     expect(run_node([join(DIST, 'cli.js'), '--binary', FAKE_YTDLP]).status).toBe(2)
+    expect(run_node([join(DIST, 'cli.js'), '--binary', FAKE_YTDLP, 'http://127.0.0.1:8080/']).status).toBe(2)
     expect(run_node([join(DIST, 'cli.js'), '--binary', FAKE_YTDLP, '--timeout', 'soon', URL_UNDER_TEST]).status).toBe(2)
-    expect(run_node([join(DIST, 'cli.js'), '--binary', FAKE_YTDLP, 'https://example.com/'], { FAKE_YTDLP_MODE: 'unsupported' }).status).toBe(1)
+    expect(run_node([join(DIST, 'cli.js'), '--binary', FAKE_YTDLP, URL_UNDER_TEST], { FAKE_YTDLP_MODE: 'unsupported' }).status).toBe(1)
     expect(run_node([join(DIST, 'cli.js'), '--binary', '/nonexistent/yt-dlp', URL_UNDER_TEST]).status).toBe(1)
   })
 })

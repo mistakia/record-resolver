@@ -12,7 +12,7 @@ import type { ResolveOptions } from './types.ts'
 import { check_ytdlp_version } from './yt-dlp.ts'
 
 const USAGE = 'usage: record-resolver [--playlist] [--binary <path>] [--timeout <ms>] <url>'
-const INPUT_ERRORS = new Set(['MISSING_URL', 'INVALID_URL'])
+const INPUT_ERRORS = new Set(['MISSING_URL', 'INVALID_URL', 'BLOCKED_DESTINATION'])
 
 function fail (message: string, exit_code: number): never {
   process.stderr.write(`${message}\n`)

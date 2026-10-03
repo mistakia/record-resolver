@@ -5,11 +5,17 @@ import { join } from 'node:path'
 
 import { ResolverError } from '../src/errors.ts'
 import { format_entry } from '../src/format.ts'
-import { resolve_url } from '../src/resolve.ts'
+import { resolve_url as resolve_url_through_dns } from '../src/resolve.ts'
+import type { ResolveOptions } from '../src/types.ts'
 import { check_ytdlp_version, FORMAT_SELECTOR, YTDLP_VERSION } from '../src/yt-dlp.ts'
 import { FAKE_YTDLP, FIXTURES_DIR, load_fixture, set_fake_env } from './helpers.ts'
 
 const URL_UNDER_TEST = 'https://soundcloud.com/skrillex/with-you-friends-long-drive'
+
+// Every host resolves to one public address, so the suite needs no DNS.
+// test/destination.test.ts covers the destination check itself.
+const resolve_url = async (url: string, options: ResolveOptions = {}) =>
+  await resolve_url_through_dns(url, { lookup: async () => [{ address: '93.184.215.14', family: 4 }], ...options })
 
 let restore_env: (() => void) | undefined
 afterEach(() => {

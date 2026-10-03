@@ -1,3 +1,4 @@
+import { assert_public_destination } from './destination.ts'
 import { ResolverError } from './errors.ts'
 import { format_entry } from './format.ts'
 import type { ResolveOptions, ResolvedEntry } from './types.ts'
@@ -23,9 +24,12 @@ export function validate_url (url: unknown): string {
 
 // Resolves a URL to one entry per audio item it names (spec §6.4.2 step 1).
 // Every entry carries a direct `url` for the download step; strip it with
-// to_resolver_entry before persisting (§2.4.2).
+// to_resolver_entry before persisting (§2.4.2). A URL whose host is not public
+// is refused before yt-dlp runs. The direct urls are not checked here: the
+// caller that fetches one checks it, on every redirect hop.
 export async function resolve_url (url: string, options: ResolveOptions = {}): Promise<ResolvedEntry[]> {
   const valid_url = validate_url(url)
+  await assert_public_destination(valid_url, { lookup: options.lookup })
   const raw_entries = await dump_json({
     url: valid_url,
     binary_path: options.binary_path,

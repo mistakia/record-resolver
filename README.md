@@ -32,8 +32,11 @@ Options:
 - `binary_path` — the yt-dlp binary
 - `timeout_ms` — default 60000
 - `playlist` — default `false`. Resolves every entry of a URL that names both an item and its playlist. A URL that names only a playlist resolves to all its entries either way.
+- `lookup` — DNS lookup for the destination check; defaults to `node:dns`
 
-Failures throw `ResolverError` with a `code`: `MISSING_URL`, `INVALID_URL`, `UNSUPPORTED_URL`, `YTDLP_NOT_FOUND`, `YTDLP_FAILED`, `YTDLP_TIMEOUT` or `YTDLP_INVALID_OUTPUT`.
+`resolve_url` refuses a URL whose host is not public before yt-dlp runs: every address the host resolves to must lie outside the unspecified, loopback, private, shared (CGNAT), link-local, unique-local, site-local, multicast and reserved ranges, including IPv4 addresses embedded in IPv4-mapped, NAT64 and 6to4 IPv6 addresses. yt-dlp resolves the host again and follows redirects itself, so this check does not bind what yt-dlp connects to. A caller that fetches a resolved `url` checks it with the same exports: `guarded_lookup` is a `lookup` for `http.request` and `https.request` that refuses the connection unless every resolved address is public, and `address_class` classifies an IP-literal host, which skips lookup.
+
+Failures throw `ResolverError` with a `code`: `MISSING_URL`, `INVALID_URL`, `BLOCKED_DESTINATION`, `UNSUPPORTED_URL`, `YTDLP_NOT_FOUND`, `YTDLP_FAILED`, `YTDLP_TIMEOUT` or `YTDLP_INVALID_OUTPUT`.
 
 ### CLI
 

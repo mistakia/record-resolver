@@ -2,6 +2,8 @@ export { resolve_url } from './resolve.ts';
 export { format_entry, to_resolver_entry } from './format.ts';
 export { check_ytdlp_version, YTDLP_VERSION } from './yt-dlp.ts';
 export type { YtdlpVersionCheck } from './yt-dlp.ts';
+export { address_class, assert_public_addresses, assert_public_destination, guarded_lookup } from './destination.ts';
+export type { AddressClass, LookupAddress, LookupAll } from './destination.ts';
 export { ResolverError, RESOLVER_ERROR_CODES } from './errors.ts';
 export type { ResolverErrorCode } from './errors.ts';
 export type { ResolveOptions, ResolvedEntry, ResolverEntry } from './types.ts';

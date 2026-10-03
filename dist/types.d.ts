@@ -1,3 +1,4 @@
+import type { LookupAll } from './destination.ts';
 export interface ResolverEntry {
     extractor: string;
     id: string;
@@ -18,4 +19,5 @@ export interface ResolveOptions {
     binary_path?: string;
     timeout_ms?: number;
     playlist?: boolean;
+    lookup?: LookupAll;
 }

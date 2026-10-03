@@ -1,3 +1,5 @@
+import type { LookupAll } from './destination.ts'
+
 // The persistable resolver record, exactly spec §2.4.2. Optional fields are
 // omitted when absent, never undefined or null, so the object encodes as
 // dag-cbor unchanged.
@@ -34,4 +36,6 @@ export interface ResolveOptions {
   // Default false. A URL that names only a playlist resolves to all its
   // entries either way.
   playlist?: boolean
+  // DNS lookup for the destination check. Defaults to node:dns lookup.
+  lookup?: LookupAll
 }
