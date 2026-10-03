@@ -30,9 +30,12 @@ export function resolve_binary_path (binary_path?: string): string {
 
 // --ignore-config keeps a user or system yt-dlp config from changing output.
 // --flat-playlist is deliberately absent: it omits the streaming url.
-export function build_ytdlp_args ({ url, playlist = false }: { url: string, playlist?: boolean }): string[] {
+// --proxy names a guarded proxy (src/guarded-proxy.ts); yt-dlp never runs
+// without one.
+export function build_ytdlp_args ({ url, proxy_url, playlist = false }: { url: string, proxy_url: string, playlist?: boolean }): string[] {
   return [
     '--ignore-config',
+    '--proxy', proxy_url,
     '--dump-json',
     '--no-warnings',
     '--no-progress',
@@ -122,16 +125,18 @@ function last_error_line (stderr: string): string {
   return lines.findLast((line) => line.startsWith('ERROR:')) ?? lines.at(-1) ?? ''
 }
 
-// Runs yt-dlp --dump-json and returns one raw info object per resolved entry.
-export async function dump_json ({ url, binary_path, timeout_ms = DEFAULT_TIMEOUT_MS, playlist = false }: {
+// Runs yt-dlp --dump-json through the proxy at proxy_url and returns one raw
+// info object per resolved entry.
+export async function dump_json ({ url, proxy_url, binary_path, timeout_ms = DEFAULT_TIMEOUT_MS, playlist = false }: {
   url: string
+  proxy_url: string
   binary_path?: string | undefined
   timeout_ms?: number | undefined
   playlist?: boolean | undefined
 }): Promise<unknown[]> {
   const result = await run({
     binary_path: resolve_binary_path(binary_path),
-    args: build_ytdlp_args({ url, playlist }),
+    args: build_ytdlp_args({ url, proxy_url, playlist }),
     timeout_ms,
     url
   })

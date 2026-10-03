@@ -126,10 +126,11 @@ const default_lookup: LookupAll = async (hostname) => await new Promise((resolve
 })
 
 // Resolves the URL's host and throws BLOCKED_DESTINATION unless every address
-// is public. A host that does not resolve is INVALID_URL. This checks names
-// for a fetch made by another process, such as yt-dlp, which resolves again
-// itself; for a fetch made in this process, connect through guarded_lookup so
-// the checked address is the one connected to.
+// is public. A host that does not resolve is INVALID_URL. This checks a URL
+// before another process, such as yt-dlp, fetches it and resolves again
+// itself; bind that process's connections with src/guarded-proxy.ts. For a
+// fetch made in this process, connect through guarded_lookup so the checked
+// address is the one connected to.
 export async function assert_public_destination (url: string, { lookup = default_lookup }: { lookup?: LookupAll | undefined } = {}): Promise<void> {
   const host = new URL(url).hostname.replace(/^\[|\]$/g, '')
   if (isIP(host) !== 0) {
