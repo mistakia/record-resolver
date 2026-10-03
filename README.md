@@ -1,48 +1,62 @@
 # Record Resolver
 
-[![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com) [![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat)](https://github.com/RichardLitt/standard-readme)
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fmistakia%2Frecord-resolver.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fmistakia%2Frecord-resolver?ref=badge_shield)
+Resolves audio URLs to Record Protocol v1 `ResolverEntry` records (spec section 2.4.2) using [yt-dlp](https://github.com/yt-dlp/yt-dlp). It is the URL resolution step of the section 6.4.2 URL ingest pipeline in [record-node](https://github.com/mistakia/record-node).
 
-> Resolver for Record.
+Runs under Node 22+ and Bun. It has no runtime npm dependencies.
 
-## Install
-```
-npm install
-```
+## Requirements
+
+yt-dlp is an external binary that the caller supplies; this package never downloads it. The supported release is pinned as `YTDLP_VERSION` (currently `2026.08.19`). `bun cli/install-yt-dlp.ts <dir>` installs that release after checking its SHA-256. The `yt-dlp` asset is a zipapp, so it needs `python3`.
+
+The binary is found from the `binary_path` option, then the `YTDLP_PATH` environment variable, then `yt-dlp` on `PATH`.
 
 ## Usage
-### CLI
-```
-wip
-```
 
-### Module
-```js
-const resolver = require('resolver')
-const url = 'http://www.youtube.com/watch?v=iODdvJGpfIA'
+```ts
+import { check_ytdlp_version, resolve_url, to_resolver_entry } from 'record-resolver'
 
-resolver(url, (err, info) => {
-  if (err) {
-     console.log(err)
-     return
-  }
+const check = await check_ytdlp_version()
+if (!check.matches) console.warn(`yt-dlp ${check.version} installed, ${check.pinned} pinned`)
 
-  console.log(info)
-})
-```
-or use with await inside an async function
-```js
-const resolver = require('resolver')
-
-try {
-  const url = 'http://www.youtube.com/watch?v=iODdvJGpfIA'
-  const info = await resolver(url)
-} catch (e) {
-  console.log(e)
+const resolved = await resolve_url('https://soundcloud.com/skrillex/with-you-friends-long-drive')
+for (const entry of resolved) {
+  // entry.url is a direct HTTP(S) audio URL, sent with entry.http_headers
+  const persisted = to_resolver_entry(entry) // drops url, ext and http_headers
 }
 ```
 
-## License
-MIT
+`resolve_url(url, options?)` returns `ResolvedEntry[]`: the section 2.4.2 fields plus the ephemeral `url`, `ext` and `http_headers`. The spec forbids persisting the streaming `url`, so pass every entry through `to_resolver_entry` before it reaches a log. Absent optional fields are omitted, never `undefined` or `null`.
 
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fmistakia%2Frecord-resolver.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fmistakia%2Frecord-resolver?ref=badge_large)
+Options:
+
+- `binary_path` — the yt-dlp binary
+- `timeout_ms` — default 60000
+- `playlist` — default `false`. Resolves every entry of a URL that names both an item and its playlist. A URL that names only a playlist resolves to all its entries either way.
+
+Failures throw `ResolverError` with a `code`: `MISSING_URL`, `INVALID_URL`, `UNSUPPORTED_URL`, `YTDLP_NOT_FOUND`, `YTDLP_FAILED`, `YTDLP_TIMEOUT` or `YTDLP_INVALID_OUTPUT`.
+
+### CLI
+
+```
+record-resolver [--playlist] [--binary <path>] [--timeout <ms>] <url>
+```
+
+Prints the resolved entries as JSON. Exits 0 on success, 1 on a resolution failure, and 2 on invalid input.
+
+## Development
+
+```
+bun install --ignore-scripts
+bun run verify        # lint, typecheck, and check dist/ is current
+bun test              # offline: recorded fixtures through a fake yt-dlp, plus a Node run of dist/
+bun run test:network  # opt-in: live sites through the pinned yt-dlp
+bun run build         # rebuild dist/ after changing src/
+```
+
+`dist/` is committed because consumers install this package as a git dependency with install scripts disabled, and Node does not strip types under `node_modules`.
+
+Fixtures under `test/fixtures/yt-dlp/` are recorded with the pinned yt-dlp by `YTDLP_PATH=<pinned yt-dlp> bun cli/record-fixtures.ts`. The recorder keeps metadata fields only and replaces streaming URLs and request headers with placeholders.
+
+## License
+
+MIT
